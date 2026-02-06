@@ -11,7 +11,7 @@ This tutorial is specifically tailored for *Streptococcus pneumoniae* and provid
 - [Quality Control \& Generating *in silico* Data](#quality-control--generating-in-silico-data)
 - [Building Phylogenetic Tree](#building-phylogenetic-tree)
   - [Filtering inputs for tree building](#filtering-inputs-for-tree-building)
-  - [Prepare snippy-multi input files](#prepare-snippy-multi-input-files)
+  - [Prepare `snippy-multi` input files](#prepare-snippy-multi-input-files)
   - [Run `snippy-multi`](#run-snippy-multi)
 - [Creating Microreact Instance](#creating-microreact-instance)
 
@@ -79,7 +79,7 @@ We use the GPS Pipeline to process raw read sequencing files (FASTQ) of *Strepto
 ## Building Phylogenetic Tree
 ### Filtering inputs for tree building
 Before building a tree, we will filter out samples that failed QC in the GPS Pipeline. We will be saving a copy of `results.csv` with only QC passed samples as `results_qcpass.csv` and a list of those samples as `ids_qcpass.txt`
-1. Go to GPS Pipeline output directory and extract GPS Pipeline results of QC-passed samples
+1. Go to GPS Pipeline output directory and extract GPS Pipeline results of QC-passed samples, this will be uploaded to your Microreact instance as metadata
     ```
     awk -F , ' FNR==1 || $6=="PASS" ' results.csv > results_qcpass.csv
     ```
@@ -88,7 +88,7 @@ Before building a tree, we will filter out samples that failed QC in the GPS Pip
     awk -F , ' FNR >1 { print $1 } ' results_qcpass.csv > ids_qcpass.txt
     ```
 
-### Prepare snippy-multi input files
+### Prepare `snippy-multi` input files
 We use `snippy-multi` script to run QC passed reads against the same reference.
 1. Run the following command to create an input file named `snippy_multi_input.tsv`
    > Update values of `READS_DIR` and `IDS_QCPASS` to the correct one
