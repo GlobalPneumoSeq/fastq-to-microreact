@@ -11,6 +11,8 @@ This tutorial is specifically tailored for *Streptococcus pneumoniae* and provid
 - [Quality Control \& Generating *in silico* Data](#quality-control--generating-in-silico-data)
 - [Building Phylogenetic Tree](#building-phylogenetic-tree)
   - [Filtering inputs for tree building](#filtering-inputs-for-tree-building)
+  - [Prepare snippy-multi input files](#prepare-snippy-multi-input-files)
+  - [Run `snippy-multi`](#run-snippy-multi)
 - [Creating Microreact Instance](#creating-microreact-instance)
 
 ## Prerequisites & Environment Setup
@@ -76,24 +78,62 @@ We use the GPS Pipeline to process raw read sequencing files (FASTQ) of *Strepto
 
 ## Building Phylogenetic Tree
 ### Filtering inputs for tree building
-Before building a tree, we will filter out samples that failed QC in the GPS Pipeline. We will run the following commands to extract samples labeled `PASS` in the `Overall_QC` column and create symbolic links in a new directory. This saves disk space while organising your data.
-1. Create a directory for QC passed reads
+Before building a tree, we will filter out samples that failed QC in the GPS Pipeline. We will be saving a copy of `results.csv` with only QC passed samples as `results_qcpass.csv` and a list of those samples as `ids_qcpass.txt`
+1. Go to GPS Pipeline output directory and extract GPS Pipeline results of QC-passed samples
     ```
-    mkdir fastqs-qcpass
+    awk -F , ' FNR==1 || $6=="PASS" ' results.csv > results_qcpass.csv
     ```
-2. Parse the results and symlink QC passed reads
-    > Update the values of `RESULTS_CSV_PATH` and `FASTQ_DIR_PATH` to correct ones in the below command
+2. Extract names of QC passed samples
     ```
-    RESULTS_CSV_PATH="/path/to/output/results.csv"
-    FASTQ_DIR_PATH="/path/to/fastqs"
+    awk -F , ' FNR >1 { print $1 } ' results_qcpass.csv > ids_qcpass.txt
+    ```
 
-    awk -F ',' '$6 == "PASS" {print $1}' ${RESULTS_CSV_PATH} | 
-        while read -r ID; do
-            ln -s "${FASTQ_DIR_PATH}/${ID}_1.fastq.gz" "fastqs-qcpass/"
-            ln -s "${FASTQ_DIR_PATH}/${ID}_2.fastq.gz" "fastqs-qcpass/"
-        done
+### Prepare snippy-multi input files
+We use `snippy-multi` script to run QC passed reads against the same reference.
+1. Run the following command to create an input file named `snippy_multi_input.tsv`
+   > Update values of `READS_DIR` and `IDS_QCPASS` to the correct one
+   ```
+    READS_DIR="/path/to/fastqs"
+    IDS_QCPASS="/path/to/ids_qcpass.txt"
+
+    while read -r ID; do 
+        echo ${ID}$'\t'${READS_DIR}/${ID}_1.fastq.gz$'\t'${READS_DIR}/${ID}_2.fastq.gz >> snippy_multi_input.tsv;
+    done < ${IDS_QCPASS}
+   ```
+2. Get a reference sequence
+    > We recommend the sequence in the below command as a general reference sequence. You might want to use [other reference genomes](https://github.com/GlobalPneumoSeq/gpsc-reference-genomes/tree/main/fasta) if you are working on a lineage/GPSC-specific analysis
     ```
-3. You will find symlinks of only the QC passed reads in the directory `fastqs-qcpass`
+    wget https://raw.githubusercontent.com/GlobalPneumoSeq/gps-pipeline/refs/heads/master/data/ATCC_700669_v1.fa
+    ```
+
+### Run `snippy-multi`
+1. Activate `buildtree` Conda environment
+   ```
+   conda activate buildtree
+   ```
+2. Run snippy-multi to generate the script `runme.sh`, which will create the alignment in the next step
+   > `--cpus $(nproc)` uses all available CPU cores when running the generated script
+   
+   > Update the value of `--ref` if you are using an alternative reference sequence
+   ```
+   snippy-multi snippy_multi_input.tsv --ref ATCC_700669_v1.fa --cpus $(nproc) > runme.sh 
+   ```
+3. Grant execution permission to the newly created file so that you can run it
+   ```
+   chmod +x runme.sh 
+   ```
+4. Run the script
+   ```
+   ./runme.sh
+   ```
+5. Clean alignment ([see here](https://github.com/tseemann/snippy?tab=readme-ov-file#why-is-corefullaln-an-alphabet-soup) for why the cleanup is needed)
+   ```
+   snippy-clean_full_aln core.full.aln > clean.full.aln
+   ```
+6. Remove intermediate directories
+   ```
+   find . -mindepth 1 -maxdepth 1  -type d -delete
+   ```
 
 ## Creating Microreact Instance
 
