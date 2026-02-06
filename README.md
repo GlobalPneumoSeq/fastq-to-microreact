@@ -7,7 +7,7 @@ This tutorial is specifically tailored for *Streptococcus pneumoniae* and provid
   - [Required Tools](#required-tools)
   - [Installing Tools](#installing-tools)
     - [GPS Pipeline](#gps-pipeline)
-    - [Tree Building Tools  (`snippy`, `snp-sites`, `fasttree`, `gubbins`)](#tree-building-tools--snippy-snp-sites-fasttree-gubbins)
+    - [Tree Building Tools  (`snippy`, `snp-sites`, `fasttree`, `ete3`, `gubbins`)](#tree-building-tools--snippy-snp-sites-fasttree-ete3-gubbins)
 - [Quality Control \& Generating *in silico* Data](#quality-control--generating-in-silico-data)
 - [Building Phylogenetic Tree](#building-phylogenetic-tree)
   - [Filtering inputs for tree building](#filtering-inputs-for-tree-building)
@@ -53,12 +53,12 @@ You can use Linux, Windows ([with WSL2](https://learn.microsoft.com/en-us/window
        ./run_pipeline --init
        ```
 
-#### Tree Building Tools  (`snippy`, `snp-sites`, `fasttree`, `gubbins`)
+#### Tree Building Tools  (`snippy`, `snp-sites`, `fasttree`, `ete3`, `gubbins`)
 1. [Install Conda](https://conda-forge.org/download/)
-2. Install `snippy`, `snp-sites`, `fasttree` in a Conda environment named `buildtree`
+2. Install `snippy`, `snp-sites`, `fasttree`, `ete3` in a Conda environment named `buildtree`
     > If using [Mac computers with Apple Silicon](https://support.apple.com/en-gb/116943), append `--platform osx-64` to the below command
     ```
-    conda create -n buildtree "snippy>=4.6.0" "snp-sites>=2.5.1" "fasttree>=2.2.0"
+    conda create -n buildtree "snippy>=4.6.0" "snp-sites>=2.5.1" "fasttree>=2.2.0" "ete3>=3.1.3"
     ```
 3. Install `gubbins` in a Conda environment named `gubbins`
    > `gubbins` need to be installed to a separated Conda environment due to package conflict with other tools.
