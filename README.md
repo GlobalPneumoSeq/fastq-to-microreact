@@ -17,7 +17,6 @@ This tutorial is specifically tailored for *Streptococcus pneumoniae* and provid
 You can use Linux, Windows ([with WSL2](https://learn.microsoft.com/en-us/windows/wsl/install)), and macOS to follow this tutorial. We recommend using a system with at least 16GB of RAM. 
 
 ### Required Tools
-We will be using the following tools. Follow the [next section](#installing-tools) to install if any of them is not available on your system.
 - [GPS Pipeline](https://github.com/GlobalPneumoSeq/gps-pipeline)
 - [Snippy](https://github.com/tseemann/snippy)
 - [SNP-sites](https://github.com/sanger-pathogens/snp-sites)
