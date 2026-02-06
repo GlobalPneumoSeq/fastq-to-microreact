@@ -1,5 +1,6 @@
-# FASTQ to Microreact <!-- omit in toc -->
-This is a tutorial on how to go from raw read files (FASTQ) to an interactive Microreact visualisation. It covers the installation of the tools, quality control and generating *in silico* data using the GPS Pipeline, and building phylogenetic tree using several open source tools.
+# FASTQ to Microreact for *Streptococcus pneumoniae* <!-- omit in toc -->
+This tutorial is specifically tailored for *Streptococcus pneumoniae* and provides a step-by-step workflow for transforming raw read sequencing files (FASTQ) into an interactive Microreact visualisation. The tutorial begins with software environment setup. It then covers quality control and the generation of *in silico* data (such as GPSCs, serotypes, and AMR profiles) using the GPS Pipeline, followed by phylogenetic tree construction, and Microreact instance creation.
+
 
 ## Table of Content <!-- omit in toc -->
 - [Prerequisites \& Environment Setup](#prerequisites--environment-setup)
@@ -24,13 +25,13 @@ We will be using the following tools. Follow the [next section](#installing-tool
 
 ### Installing Tools
 #### GPS Pipeline
-1. Install dependencies of the GPS Pipeline
+1. Install dependencies
    1. Install OpenJDK 17 (or later, up to 24) (use [`SDKMAN!`](https://sdkman.io/install/) to install an appropiate version of [Temurin distribution](https://sdkman.io/jdks/tem/))
    2. Install Docker or Singularity/Apptainer
        - Linux: [Docker Engine](https://docs.docker.com/engine/install/) / [Apptainer](https://apptainer.org/docs/admin/main/installation.html)
        - macOS: [Docker Desktop for macOS](https://docs.docker.com/desktop/setup/install/mac-install/)
        - Windows with WSL2: [Docker Desktop for WSL2](https://docs.docker.com/desktop/features/wsl/)
-2. Install the GPS Pipeline
+2. Clone and initialise the pipeline
     > `git` should come preinstalled on most systems. If not, follow the [official installation guide](https://github.com/git-guides/install-git).
    1. Open Terminal/CLI and go into where you want to keep the pipeline
        ```
@@ -45,28 +46,20 @@ We will be using the following tools. Follow the [next section](#installing-tool
        cd gps-pipeline
        ```
    4. (Optional) Initialise the pipeline, so it can be used any time without the Internet
-       - Using Docker as the container engine
-          ```
-          ./run_pipeline --init
-          ```
-       - Using Singularity/Apptainer as the container engine
-          ```
-          ./run_pipeline --init -profile singularity
-          ```
+        > If using Singularity/Apptainer, add `-profile singularity` to the below command
+       ```
+       ./run_pipeline --init
+       ```
 
 #### Tree Building Tools  (`snippy`, `snp-sites`, `fasttree`, `gubbins`)
 1. [Install Conda](https://conda-forge.org/download/)
-> `snippy`, `snp-sites`, `fasttree` and `gubbins` need to be installed to separated Conda environments due to package conflict.
 2. Install `snippy`, `snp-sites`, `fasttree` in a Conda environment named `buildtree`
-    - For most systems:
-        ```
-        conda create -n buildtree "snippy>=4.6.0" "snp-sites>=2.5.1" "fasttree>=2.2.0"
-        ```
-    - For [Mac using M-series chip](https://support.apple.com/en-gb/116943), run the following instead:
-        ```
-        conda create -n buildtree --platform osx-64 "snippy>=4.6.0" "snp-sites>=2.5.1" "fasttree>=2.2.0"
-        ```
-3. Install `gubbins` in a Conda environment named `gubbins` 
+    > If using [Mac computers with Apple Silicon](https://support.apple.com/en-gb/116943), append `--platform osx-64` to the below command
+    ```
+    conda create -n buildtree "snippy>=4.6.0" "snp-sites>=2.5.1" "fasttree>=2.2.0"
+    ```
+3. Install `gubbins` in a Conda environment named `gubbins`
+   > `gubbins` need to be installed to a separated Conda environment due to package conflict with other tools.
     ```
     conda create -n gubbins "gubbins>=3.4.3"
     ```
