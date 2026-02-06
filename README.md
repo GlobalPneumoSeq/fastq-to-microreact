@@ -64,7 +64,15 @@ We will be using the following tools. Follow the [next section](#installing-tool
     conda create -n gubbins "gubbins>=3.4.3"
     ```
 ## Quality Control & Generating *in silico* Data
+We use the GPS Pipeline to process raw read sequencing files (FASTQ) of *Streptococcus pneumoniae* samples, it will perform quality assessment (QC) and *in silico* typing (including serotype, MLST, GPSC, and AMR) fully automatic.
 
+1. Saving FASTQ files of all samples in a single directory
+2. Run the pipeline by specifying where the FASTQ files are stored (`--reads`) and the output directory (`--output`)
+   > If using Singularity/Apptainer, add `-profile singularity` to the below command
+   ```
+    ./run_pipeline --reads /path/to/fastqs --output /path/to/output
+   ```
+3. Once the run is completed, you will find `results.csv` in your specified output directory
 
 ## Building Phylogenetic Tree
 
