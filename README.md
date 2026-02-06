@@ -132,7 +132,7 @@ We use `snippy-multi` script to run QC passed reads against the same reference.
    ```
 6. Remove intermediate directories
    ```
-   find . -mindepth 1 -maxdepth 1  -type d -delete
+   cut -f1 snippy_multi_input.tsv | xargs rm -rf
    ```
 
 ## Creating Microreact Instance
