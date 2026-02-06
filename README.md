@@ -10,6 +10,7 @@ This tutorial is specifically tailored for *Streptococcus pneumoniae* and provid
     - [Tree Building Tools  (`snippy`, `snp-sites`, `fasttree`, `gubbins`)](#tree-building-tools--snippy-snp-sites-fasttree-gubbins)
 - [Quality Control \& Generating *in silico* Data](#quality-control--generating-in-silico-data)
 - [Building Phylogenetic Tree](#building-phylogenetic-tree)
+  - [Filtering inputs for tree building](#filtering-inputs-for-tree-building)
 - [Creating Microreact Instance](#creating-microreact-instance)
 
 ## Prerequisites & Environment Setup
@@ -75,7 +76,25 @@ We use the GPS Pipeline to process raw read sequencing files (FASTQ) of *Strepto
 3. Once the run is completed, you will find `results.csv` in your specified output directory
 
 ## Building Phylogenetic Tree
+### Filtering inputs for tree building
+Before building a tree, we will filter out samples that failed QC in the GPS Pipeline. We will run the following commands to extract samples labeled `PASS` in the `Overall_QC` column and create symbolic links in a new directory. This saves disk space while organising your data.
+1. Create a directory for QC passed reads
+    ```
+    mkdir fastqs-qcpass
+    ```
+2. Parse the results and symlink QC passed reads
+    > Update the values of `RESULTS_CSV_PATH` and `FASTQ_DIR_PATH` to correct ones in the below command
+    ```
+    RESULTS_CSV_PATH="/path/to/output/results.csv"
+    FASTQ_DIR_PATH="/path/to/fastqs"
 
+    awk -F ',' '$6 == "PASS" {print $1}' ${RESULTS_CSV_PATH} | 
+        while read -r ID; do
+            ln -s "${FASTQ_DIR_PATH}/${ID}_1.fastq.gz" "fastqs-qcpass/"
+            ln -s "${FASTQ_DIR_PATH}/${ID}_2.fastq.gz" "fastqs-qcpass/"
+        done
+    ```
+3. You will find symlinks of only the QC passed reads in the directory `fastqs-qcpass`
 
 ## Creating Microreact Instance
 
