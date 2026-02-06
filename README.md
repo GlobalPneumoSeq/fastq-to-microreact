@@ -13,6 +13,8 @@ This tutorial is specifically tailored for *Streptococcus pneumoniae* and provid
   - [Filtering inputs for tree building](#filtering-inputs-for-tree-building)
   - [Prepare `snippy-multi` input files](#prepare-snippy-multi-input-files)
   - [Run `snippy-multi`](#run-snippy-multi)
+  - [Crossroads: Choose Your Path](#crossroads-choose-your-path)
+  - [Path A - Fast, but without recombination filtering (`snp-sites` → `fasttree` → `ete3`)](#path-a---fast-but-without-recombination-filtering-snp-sites--fasttree--ete3)
 - [Creating Microreact Instance](#creating-microreact-instance)
 
 ## Prerequisites & Environment Setup
@@ -23,6 +25,7 @@ You can use Linux, Windows ([with WSL2](https://learn.microsoft.com/en-us/window
 - [Snippy](https://github.com/tseemann/snippy)
 - [SNP-sites](https://github.com/sanger-pathogens/snp-sites)
 - [FastTree](https://github.com/morgannprice/fasttree)
+- [ETE Toolkit](https://github.com/etetoolkit/ete)
 - [Gubbins](https://github.com/nickjcroucher/gubbins)
 
 ### Installing Tools
@@ -79,11 +82,15 @@ We use the GPS Pipeline to process raw read sequencing files (FASTQ) of *Strepto
 ## Building Phylogenetic Tree
 ### Filtering inputs for tree building
 Before building a tree, we will filter out samples that failed QC in the GPS Pipeline. We will be saving a copy of `results.csv` with only QC passed samples as `results_qcpass.csv` and a list of those samples as `ids_qcpass.txt`
-1. Go to GPS Pipeline output directory and extract GPS Pipeline results of QC-passed samples, this will be uploaded to your Microreact instance as metadata
+1. Go into GPS Pipeline output directory
+   ```
+   cd /path/to/output
+   ``` 
+2. Extract GPS Pipeline results of QC-passed samples, **`results_qcpass.csv` will be uploaded to your Microreact instance as metadata**
     ```
     awk -F , ' FNR==1 || $6=="PASS" ' results.csv > results_qcpass.csv
     ```
-2. Extract names of QC passed samples
+3. Extract names of QC passed samples
     ```
     awk -F , ' FNR >1 { print $1 } ' results_qcpass.csv > ids_qcpass.txt
     ```
@@ -133,6 +140,28 @@ We use `snippy-multi` script to run QC passed reads against the same reference.
 6. Remove intermediate directories
    ```
    cut -f1 snippy_multi_input.tsv | xargs rm -rf
+   ```
+
+### Crossroads: Choose Your Path
+Depending on the purpose of your tree building and the nature of your samples, you might choose one of the following paths:
+- Path A: 
+  - Fast preliminary test
+  - Species-wide analysis (as `gubbins` works on [samples within a strain or lineage only](https://github.com/nickjcroucher/gubbins/blob/master/docs/gubbins_manual.md#introduction)) 
+- Path B:
+  - Strain/lineage-specific analysis
+
+### Path A - Fast, but without recombination filtering (`snp-sites` → `fasttree` → `ete3`)
+1. Run `snp-sites` to identify and extract the SNPs from the alignment
+   ```
+   snp-sites -o clean.full.SNPs.aln clean.full.aln
+   ```
+2. Run `fasttree` to build a tree
+   ```
+   FastTree -nt -gtr clean.full.SNPs.aln > clean.full.SNPs.aln.tree
+   ```
+3. Run `ete3` via Python to prune reference from tree file
+   ```
+   echo -e "from ete3 import Tree\nt = Tree('clean.full.SNPs.aln.tree')\nt.search_nodes(name='Reference')[0].detach()\nt.write(outfile='clean.full.SNPs.aln.noref.tree')" | python3
    ```
 
 ## Creating Microreact Instance
