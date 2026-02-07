@@ -1,5 +1,5 @@
 # FASTQ to Microreact for *Streptococcus pneumoniae* <!-- omit in toc -->
-This tutorial is specifically tailored for *Streptococcus pneumoniae* and provides a step-by-step workflow for transforming raw read sequencing files (FASTQ) into an interactive Microreact visualisation. The tutorial begins with software environment setup. It then covers quality control and the generation of *in silico* data (such as GPSCs, serotypes, and AMR profiles) using the GPS Pipeline, followed by phylogenetic tree construction, and Microreact instance creation.
+This tutorial is specifically tailored for *Streptococcus pneumoniae* and provides a step-by-step workflow for transforming raw read sequencing files (FASTQ) into an interactive Microreact visualisation. The tutorial begins with software environment setup. It then covers quality control and the generation of *in silico* data (such as GPSCs, serotypes, MLSTs, and AMR profiles) using the GPS Pipeline, followed by phylogenetic tree construction, and Microreact instance creation.
 
 
 ## Table of Content <!-- omit in toc -->
@@ -9,12 +9,14 @@ This tutorial is specifically tailored for *Streptococcus pneumoniae* and provid
     - [GPS Pipeline](#gps-pipeline)
     - [Tree Building Tools  (`snippy`, `snp-sites`, `fasttree`, `ete3`, `gubbins`)](#tree-building-tools--snippy-snp-sites-fasttree-ete3-gubbins)
 - [Quality Control \& Generating *in silico* Data](#quality-control--generating-in-silico-data)
+  - [Run GPS Pipeline](#run-gps-pipeline)
+  - [Filtering samples](#filtering-samples)
 - [Building Phylogenetic Tree](#building-phylogenetic-tree)
-  - [Filtering inputs for tree building](#filtering-inputs-for-tree-building)
   - [Prepare `snippy-multi` input files](#prepare-snippy-multi-input-files)
   - [Run `snippy-multi`](#run-snippy-multi)
   - [Crossroads: Choose Your Path](#crossroads-choose-your-path)
-  - [Path A - Fast, but without recombination filtering (`snp-sites` → `fasttree` → `ete3`)](#path-a---fast-but-without-recombination-filtering-snp-sites--fasttree--ete3)
+  - [Path A - `snp-sites` → `fasttree` → `ete3`](#path-a---snp-sites--fasttree--ete3)
+  - [Path B - `gubbins` → `ete3`](#path-b---gubbins--ete3)
 - [Creating Microreact Instance](#creating-microreact-instance)
 
 ## Prerequisites & Environment Setup
@@ -38,7 +40,7 @@ You can use Linux, Windows ([with WSL2](https://learn.microsoft.com/en-us/window
        - Windows with WSL2: [Docker Desktop for WSL2](https://docs.docker.com/desktop/features/wsl/)
 2. Clone and initialise the pipeline
     > `git` should come preinstalled on most systems. If not, follow the [official installation guide](https://github.com/git-guides/install-git).
-   1. Open Terminal/CLI and go into where you want to keep the pipeline
+   1. Go into where you want to keep the pipeline
        ```
        cd /path/of/your/choice
        ```
@@ -59,7 +61,7 @@ You can use Linux, Windows ([with WSL2](https://learn.microsoft.com/en-us/window
 #### Tree Building Tools  (`snippy`, `snp-sites`, `fasttree`, `ete3`, `gubbins`)
 1. [Install Conda](https://conda-forge.org/download/)
 2. Install `snippy`, `snp-sites`, `fasttree`, `ete3` in a Conda environment named `buildtree`
-    > If using [Mac computers with Apple Silicon](https://support.apple.com/en-gb/116943), append `--platform osx-64` to the below command
+    > If using [Mac computers with Apple Silicon](https://support.apple.com/en-gb/116943), append `--platform osx-64` to the below command.
     ```
     conda create -n buildtree "snippy>=4.6.0" "snp-sites>=2.5.1" "fasttree>=2.2.0" "ete3>=3.1.3"
     ```
@@ -69,18 +71,17 @@ You can use Linux, Windows ([with WSL2](https://learn.microsoft.com/en-us/window
     conda create -n gubbins "gubbins>=3.4.3"
     ```
 ## Quality Control & Generating *in silico* Data
-We use the GPS Pipeline to process raw read sequencing files (FASTQ) of *Streptococcus pneumoniae* samples, it will perform quality assessment (QC) and *in silico* typing (including serotype, MLST, GPSC, and AMR) fully automatic.
-
+### Run GPS Pipeline
+We use the GPS Pipeline to process raw read sequencing files (FASTQ) of *Streptococcus pneumoniae* samples, it will perform quality control (QC) and *in silico* typing (including serotype, MLST, GPSC, and AMR profile) fully automatic.
 1. Saving FASTQ files of all samples in a single directory
 2. Run the pipeline by specifying where the FASTQ files are stored (`--reads`) and the output directory (`--output`)
-   > If using Singularity/Apptainer, add `-profile singularity` to the below command
+   > If using Singularity/Apptainer, add `-profile singularity` to the below command.
    ```
     ./run_pipeline --reads /path/to/fastqs --output /path/to/output
    ```
 3. Once the run is completed, you will find `results.csv` in your specified output directory
 
-## Building Phylogenetic Tree
-### Filtering inputs for tree building
+### Filtering samples
 Before building a tree, we will filter out samples that failed QC in the GPS Pipeline. We will be saving a copy of `results.csv` with only QC passed samples as `results_qcpass.csv` and a list of those samples as `ids_qcpass.txt`
 1. Go into GPS Pipeline output directory
    ```
@@ -95,10 +96,11 @@ Before building a tree, we will filter out samples that failed QC in the GPS Pip
     awk -F , ' FNR >1 { print $1 } ' results_qcpass.csv > ids_qcpass.txt
     ```
 
-### Prepare `snippy-multi` input files
+## Building Phylogenetic Tree
 We use `snippy-multi` script to run QC passed reads against the same reference.
+### Prepare `snippy-multi` input files
 1. Run the following command to create an input file named `snippy_multi_input.tsv`
-   > Update values of `READS_DIR` and `IDS_QCPASS` to the correct one
+   > Update values of `READS_DIR` and `IDS_QCPASS` to the correct ones.
    ```
     READS_DIR="/path/to/fastqs"
     IDS_QCPASS="/path/to/ids_qcpass.txt"
@@ -108,7 +110,7 @@ We use `snippy-multi` script to run QC passed reads against the same reference.
     done < ${IDS_QCPASS}
    ```
 2. Get a reference sequence
-    > We recommend the sequence in the below command as a general reference sequence. You might want to use [other reference genomes](https://github.com/GlobalPneumoSeq/gpsc-reference-genomes/tree/main/fasta) if you are working on a lineage/GPSC-specific analysis
+    > Below command downloads a general reference sequence. You should use [a suitable reference genome](https://github.com/GlobalPneumoSeq/gpsc-reference-genomes/tree/main/fasta) if you are working on a lineage/GPSC-specific analysis.
     ```
     wget https://raw.githubusercontent.com/GlobalPneumoSeq/gps-pipeline/refs/heads/master/data/ATCC_700669_v1.fa
     ```
@@ -119,9 +121,9 @@ We use `snippy-multi` script to run QC passed reads against the same reference.
    conda activate buildtree
    ```
 2. Run snippy-multi to generate the script `runme.sh`, which will create the alignment in the next step
-   > `--cpus $(nproc)` uses all available CPU cores when running the generated script
+   > `--cpus $(nproc)` uses all available CPU cores when running the generated script.
    
-   > Update the value of `--ref` if you are using an alternative reference sequence
+   > Update the value of `--ref` if you are using an alternative reference sequence.
    ```
    snippy-multi snippy_multi_input.tsv --ref ATCC_700669_v1.fa --cpus $(nproc) > runme.sh 
    ```
@@ -145,12 +147,13 @@ We use `snippy-multi` script to run QC passed reads against the same reference.
 ### Crossroads: Choose Your Path
 Depending on the purpose of your tree building and the nature of your samples, you might choose one of the following paths:
 - Path A: 
-  - Fast preliminary test
-  - Species-wide analysis (as `gubbins` works on [samples within a strain or lineage only](https://github.com/nickjcroucher/gubbins/blob/master/docs/gubbins_manual.md#introduction)) 
+  - Species-wide analysis (as `gubbins` only works on [samples within a strain or lineage](https://github.com/nickjcroucher/gubbins/blob/master/docs/gubbins_manual.md#introduction)), or quick preliminary test
+  - Faster
 - Path B:
   - Strain/lineage-specific analysis
+  - Slower
 
-### Path A - Fast, but without recombination filtering (`snp-sites` → `fasttree` → `ete3`)
+### Path A - `snp-sites` → `fasttree` → `ete3`
 1. Run `snp-sites` to identify and extract the SNPs from the alignment
    ```
    snp-sites -o clean.full.SNPs.aln clean.full.aln
@@ -163,6 +166,26 @@ Depending on the purpose of your tree building and the nature of your samples, y
    ```
    echo -e "from ete3 import Tree\nt = Tree('clean.full.SNPs.aln.tree')\nt.search_nodes(name='Reference')[0].detach()\nt.write(outfile='clean.full.SNPs.aln.noref.tree')" | python3
    ```
+4. **The resulting `clean.full.SNPs.aln.noref.tree` will be uploaded to your Microreact instance as tree file**
+
+### Path B - `gubbins` → `ete3`
+1. Activate `gubbins` Conda environment
+   ```
+   conda activate gubbins
+   ```
+2. Run `gubbins` to build a tree with recombination filtering
+   > `--threads $(nproc)` uses all available CPU cores when running `gubbins`
+   ```
+   run_gubbins.py --mar --threads $(nproc) -p gubbins_output clean.full.aln
+   ```
+3. Activate `buildtree` Conda environment
+   ```
+   conda activate buildtree
+   ```
+4. Run `ete3` via Python to prune reference from tree file
+   ```
+   echo -e "from ete3 import Tree\nt = Tree('gubbins_output.final_tree.tre')\nt.search_nodes(name='Reference')[0].detach()\nt.write(outfile='gubbins_output.final_tree.noref.tre')" | python3
+5. **The resulting `gubbins_output.final_tree.noref.tre` will be uploaded to your Microreact instance as tree file**
 
 ## Creating Microreact Instance
 
