@@ -33,7 +33,7 @@ You can use Linux, Windows ([with WSL2](https://learn.microsoft.com/en-us/window
 ### Installing Tools
 #### GPS Pipeline
 1. Install dependencies
-   1. Install OpenJDK 17 (or later, up to 24) (use [`SDKMAN!`](https://sdkman.io/install/) to install an appropiate version of [Temurin distribution](https://sdkman.io/jdks/tem/))
+   1. Install OpenJDK 17 (or later, up to 25) (use [`SDKMAN!`](https://sdkman.io/install/) to install an appropiate version of [Temurin distribution](https://sdkman.io/jdks/tem/))
    2. Install Docker or Singularity/Apptainer
        - Linux: [Docker Engine](https://docs.docker.com/engine/install/) / [Apptainer](https://apptainer.org/docs/admin/main/installation.html)
        - macOS: [Docker Desktop for macOS](https://docs.docker.com/desktop/setup/install/mac-install/)
